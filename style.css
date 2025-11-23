@@ -341,3 +341,68 @@ button:hover {
         border-bottom-color: #dee2e6;
     }
 }
+/* ============================
+   NGĂN ZOOM TRÊN IPHONE/IOS
+   ============================ */
+
+/* Quan trọng: Ngăn zoom trên iOS devices */
+@supports (-webkit-touch-callout: none) {
+    input, textarea, select {
+        font-size: 16px !important;
+        transform: scale(1);
+        transform-origin: center;
+    }
+    
+    /* Đảm bảo các input có đủ kích thước */
+    #searchInput, .form-input {
+        font-size: 16px !important;
+        min-height: 44px !important;
+    }
+    
+    /* Nút bấm cũng cần đủ lớn */
+    button {
+        min-height: 44px !important;
+        min-width: 44px !important;
+    }
+}
+
+/* CSS chung cho tất cả mobile devices */
+@media (max-width: 768px) {
+    input, textarea, select {
+        font-size: 16px;
+    }
+    
+    #searchInput, .form-input {
+        font-size: 16px;
+        padding: 12px 15px;
+    }
+    
+    button {
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+}
+
+/* Đảm bảo font-size 16px cho tất cả input trên mobile */
+@media (max-width: 768px) {
+    #searchInput {
+        font-size: 16px !important;
+    }
+    
+    .form-input {
+        font-size: 16px !important;
+    }
+    
+    .add-form input {
+        font-size: 16px !important;
+    }
+    
+    /* Đảm bảo kích thước tối thiểu cho touch */
+    input, textarea, select, button {
+        min-height: 44px !important;
+    }
+    
+    button {
+        min-width: 44px !important;
+    }
+}
