@@ -32,37 +32,48 @@ h1 {
     display: flex;
     margin-bottom: 20px;
     border-bottom: 2px solid #dee2e6;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 5px;
 }
 
 .tab-button {
-    padding: 12px 30px;
+    flex: 1;
+    padding: 12px 20px;
     background: none;
     border: none;
-    border-bottom: 3px solid transparent;
+    border-radius: 6px;
     font-size: 16px;
     font-weight: bold;
     color: #6c757d;
     cursor: pointer;
     transition: all 0.3s;
+    text-align: center;
 }
 
 .tab-button:hover {
     color: #495057;
-    background: #f8f9fa;
+    background: #e9ecef;
 }
 
 .tab-button.active {
-    color: #667eea;
-    border-bottom-color: #667eea;
-    background: #f8f9fa;
+    color: white;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .tab-content {
     display: none;
+    animation: fadeIn 0.3s ease-in;
 }
 
 .tab-content.active {
     display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Search tab styles */
