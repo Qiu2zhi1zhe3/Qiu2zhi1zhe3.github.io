@@ -1,6 +1,6 @@
-// Thêm các biến toàn cục
-const GITHUB_USERNAME = 'qiu2zhi1zhe3'; // Thay bằng username GitHub của bạn
-const GITHUB_REPO = 'qiu2zhi1zhe3.github.io'; // Thay bằng tên repository
+// Tự động detect repository
+const GITHUB_REPO = window.location.hostname.split('.')[0];
+const GITHUB_USERNAME = GITHUB_REPO;
 const DATA_FILE_PATH = 'data.txt';
 
 let data = [];
@@ -19,16 +19,16 @@ async function loadData() {
                 if (parts.length >= 3) {
                     return {
                         fullText: line.trim(),
-                        code: parts[0],
-                        subCode: parts[1],
-                        name: parts.slice(2).join('.')
+                        ch: parts[0], // CH
+                        bs: parts[1].split(',').map(bs => bs.trim()), // BS (có thể nhiều)
+                        more: parts.slice(2).join('.') // More
                     };
                 }
                 return {
                     fullText: line.trim(),
-                    code: '',
-                    subCode: '',
-                    name: line.trim()
+                    ch: '',
+                    bs: [],
+                    more: line.trim()
                 };
             });
         
@@ -39,48 +39,132 @@ async function loadData() {
     }
 }
 
-// Hàm thêm dữ liệu mới
-async function addNewData() {
-    const code = document.getElementById('newCode').value.trim();
-    const subCode = document.getElementById('newSubCode').value.trim();
-    const name = document.getElementById('newName').value.trim();
+// Hàm tìm kiếm
+function searchData() {
+    const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+    const resultsContainer = document.getElementById('results');
+    const noResults = document.getElementById('noResults');
+    const resultCount = document.getElementById('resultCount');
+    
+    resultsContainer.innerHTML = '';
+    
+    if (searchTerm === '') {
+        noResults.style.display = 'block';
+        resultCount.textContent = '0 kết quả';
+        return;
+    }
+    
+    const filteredData = data.filter(item => {
+        const searchInFullText = item.fullText.toLowerCase().includes(searchTerm);
+        const searchInCH = item.ch.toLowerCase().includes(searchTerm);
+        const searchInBS = item.bs.some(bs => bs.toLowerCase().includes(searchTerm));
+        const searchInMore = item.more.toLowerCase().includes(searchTerm);
+        
+        return searchInFullText || searchInCH || searchInBS || searchInMore;
+    });
+    
+    if (filteredData.length > 0) {
+        filteredData.forEach(item => {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result-item';
+            
+            let highlightedText = highlightText(item.fullText, searchTerm);
+            
+            resultItem.innerHTML = `
+                <div class="result-info">${highlightedText}</div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                    CH: ${item.ch} | BS: ${item.bs.join(', ')} | More: ${item.more}
+                </div>
+            `;
+            
+            resultsContainer.appendChild(resultItem);
+        });
+        
+        noResults.style.display = 'none';
+        resultCount.textContent = `${filteredData.length} kết quả`;
+    } else {
+        noResults.style.display = 'block';
+        resultCount.textContent = '0 kết quả';
+    }
+}
 
-    if (!code || !subCode || !name) {
+// Hàm thêm dữ liệu mới với tính năng ghi đè
+async function addNewData() {
+    const ch = document.getElementById('newCode').value.trim();
+    const bsInput = document.getElementById('newSubCode').value.trim();
+    const more = document.getElementById('newName').value.trim();
+
+    if (!ch || !bsInput || !more) {
         showMessage('Vui lòng điền đầy đủ thông tin', 'error');
         return;
     }
 
-    // Kiểm tra token
     if (!githubToken) {
         showTokenModal();
         return;
     }
 
-    const newEntry = `${code}.${subCode}.${name}`;
+    // Xử lý nhiều BS (tách bằng dấu phẩy)
+    const bsArray = bsInput.split(',')
+        .map(bs => bs.trim())
+        .filter(bs => bs !== '');
+
+    if (bsArray.length === 0) {
+        showMessage('Vui lòng nhập ít nhất một BS', 'error');
+        return;
+    }
+
+    const newEntry = `${ch}.${bsArray.join(',')}.${more}`;
     
     try {
+        showMessage('Đang xử lý dữ liệu...', 'success');
+        
         // Lấy thông tin file hiện tại
         const fileInfo = await getFileInfo();
+        let currentContent = fileInfo.content;
+        let lines = currentContent.split('\n').filter(line => line.trim() !== '');
         
-        // Thêm dòng mới vào nội dung
-        const newContent = fileInfo.content + '\n' + newEntry;
+        // Tìm và xóa các dòng có BS trùng
+        const bsToCheck = bsArray.map(bs => bs.toLowerCase());
+        lines = lines.filter(line => {
+            const parts = line.split('.');
+            if (parts.length >= 2) {
+                const existingBS = parts[1].split(',').map(bs => bs.trim().toLowerCase());
+                // Nếu có bất kỳ BS nào trùng, xóa dòng cũ
+                return !existingBS.some(bs => bsToCheck.includes(bs));
+            }
+            return true;
+        });
+        
+        // Thêm dòng mới
+        lines.push(newEntry);
+        const newContent = lines.join('\n');
         
         // Cập nhật file
-        const result = await updateFile(newContent, fileInfo.sha);
+        await updateFile(newContent, fileInfo.sha);
         
-        if (result) {
-            showMessage('Đã thêm thông tin thành công!', 'success');
-            clearForm();
-            // Load lại dữ liệu sau 2 giây
-            setTimeout(loadData, 2000);
+        const deletedCount = currentContent.split('\n').length - lines.length;
+        let message = '✅ Đã thêm thông tin thành công!';
+        if (deletedCount > 0) {
+            message += ` Đã xóa ${deletedCount} dòng cũ có BS trùng.`;
         }
+        
+        showMessage(message, 'success');
+        clearForm();
+        
+        // Load lại dữ liệu sau 3 giây
+        setTimeout(() => {
+            loadData();
+            searchData();
+        }, 3000);
+        
     } catch (error) {
         console.error('Lỗi khi thêm dữ liệu:', error);
-        showMessage('Lỗi: ' + error.message, 'error');
+        showMessage('❌ Lỗi: ' + error.message, 'error');
     }
 }
 
-// Lấy thông tin file từ GitHub
+// Hàm lấy thông tin file
 async function getFileInfo() {
     const response = await fetch(
         `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${DATA_FILE_PATH}`,
@@ -93,17 +177,23 @@ async function getFileInfo() {
     );
 
     if (!response.ok) {
-        throw new Error('Không thể lấy thông tin file');
+        if (response.status === 404) {
+            throw new Error('Không tìm thấy file data.txt trong repository');
+        } else if (response.status === 401) {
+            throw new Error('Token không hợp lệ hoặc hết hạn');
+        } else {
+            throw new Error(`Lỗi GitHub API: ${response.status}`);
+        }
     }
 
     const fileData = await response.json();
     return {
-        content: atob(fileData.content), // Giải mã base64
+        content: decodeBase64(fileData.content),
         sha: fileData.sha
     };
 }
 
-// Cập nhật file trên GitHub
+// Hàm cập nhật file
 async function updateFile(content, sha) {
     const response = await fetch(
         `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${DATA_FILE_PATH}`,
@@ -115,8 +205,8 @@ async function updateFile(content, sha) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: `Thêm dữ liệu mới: ${new Date().toLocaleString('vi-VN')}`,
-                content: btoa(unescape(encodeURIComponent(content))), // Mã hóa base64
+                message: `Cập nhật dữ liệu: ${new Date().toLocaleString('vi-VN')}`,
+                content: encodeBase64(content),
                 sha: sha
             })
         }
@@ -130,7 +220,35 @@ async function updateFile(content, sha) {
     return true;
 }
 
-// Các hàm hỗ trợ
+// Hàm giải mã base64
+function decodeBase64(str) {
+    try {
+        return decodeURIComponent(escape(atob(str)));
+    } catch (e) {
+        return atob(str);
+    }
+}
+
+// Hàm mã hóa base64
+function encodeBase64(str) {
+    try {
+        return btoa(unescape(encodeURIComponent(str)));
+    } catch (e) {
+        return btoa(str);
+    }
+}
+
+// Hàm highlight text
+function highlightText(text, searchTerm) {
+    const regex = new RegExp(`(${escapeRegex(searchTerm)})`, 'gi');
+    return text.replace(regex, '<span class="highlight">$1</span>');
+}
+
+function escapeRegex(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Các hàm UI
 function showTokenModal() {
     document.getElementById('tokenModal').style.display = 'block';
 }
@@ -145,7 +263,7 @@ function saveToken() {
         githubToken = token;
         localStorage.setItem('githubToken', token);
         closeModal();
-        showMessage('Đã lưu token thành công!', 'success');
+        showMessage('✅ Đã lưu token thành công!', 'success');
     }
 }
 
@@ -170,60 +288,7 @@ function refreshData() {
     showMessage('Đang làm mới dữ liệu...', 'success');
 }
 
-// Giữ nguyên các hàm tìm kiếm hiện có (searchData, highlightText, etc.)
-function searchData() {
-    const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
-    const resultsContainer = document.getElementById('results');
-    const noResults = document.getElementById('noResults');
-    const resultCount = document.getElementById('resultCount');
-    
-    resultsContainer.innerHTML = '';
-    
-    if (searchTerm === '') {
-        noResults.style.display = 'block';
-        resultCount.textContent = '0 kết quả';
-        return;
-    }
-    
-    const filteredData = data.filter(item => {
-        return item.fullText.toLowerCase().includes(searchTerm) ||
-               item.code.toLowerCase().includes(searchTerm) ||
-               item.subCode.toLowerCase().includes(searchTerm) ||
-               item.name.toLowerCase().includes(searchTerm);
-    });
-    
-    if (filteredData.length > 0) {
-        filteredData.forEach(item => {
-            const resultItem = document.createElement('div');
-            resultItem.className = 'result-item';
-            
-            let highlightedText = highlightText(item.fullText, searchTerm);
-            
-            resultItem.innerHTML = `
-                <div class="result-info">${highlightedText}</div>
-            `;
-            
-            resultsContainer.appendChild(resultItem);
-        });
-        
-        noResults.style.display = 'none';
-        resultCount.textContent = `${filteredData.length} kết quả`;
-    } else {
-        noResults.style.display = 'block';
-        resultCount.textContent = '0 kết quả';
-    }
-}
-
-function highlightText(text, searchTerm) {
-    const regex = new RegExp(`(${escapeRegex(searchTerm)})`, 'gi');
-    return text.replace(regex, '<span class="highlight">$1</span>');
-}
-
-function escapeRegex(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-// Giữ nguyên các event listeners hiện có
+// Event listeners
 document.getElementById('searchInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         searchData();
@@ -236,4 +301,5 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
     searchTimeout = setTimeout(searchData, 300);
 });
 
+// Load dữ liệu khi trang được tải
 window.addEventListener('DOMContentLoaded', loadData);
