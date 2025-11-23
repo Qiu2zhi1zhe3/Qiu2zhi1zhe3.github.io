@@ -88,14 +88,14 @@ function searchData() {
     }
 }
 
-// Hàm thêm dữ liệu mới với tính năng ghi đè
+// Hàm thêm dữ liệu mới với logic gộp CH và xóa BS trùng
 async function addNewData() {
-    const ch = document.getElementById('newCode').value.trim();
-    const bsInput = document.getElementById('newSubCode').value.trim();
-    const more = document.getElementById('newName').value.trim();
+    let ch = document.getElementById('newCode').value.trim().toUpperCase();
+    let bsInput = document.getElementById('newSubCode').value.trim().toUpperCase();
+    let more = document.getElementById('newName').value.trim();
 
-    if (!ch || !bsInput || !more) {
-        showMessage('Vui lòng điền đầy đủ thông tin', 'error');
+    if (!ch || !bsInput) {
+        showMessage('Vui lòng điền đầy đủ CH và ít nhất một BS', 'error');
         return;
     }
 
@@ -114,8 +114,6 @@ async function addNewData() {
         return;
     }
 
-    const newEntry = `${ch}.${bsArray.join(',')}.${more}`;
-    
     try {
         showMessage('Đang xử lý dữ liệu...', 'success');
         
@@ -124,29 +122,75 @@ async function addNewData() {
         let currentContent = fileInfo.content;
         let lines = currentContent.split('\n').filter(line => line.trim() !== '');
         
-        // Tìm và xóa các dòng có BS trùng
+        // Tìm các dòng cần xử lý
+        let existingLineIndex = -1;
+        let linesToRemove = [];
         const bsToCheck = bsArray.map(bs => bs.toLowerCase());
-        lines = lines.filter(line => {
+        
+        // Tìm dòng có CH trùng
+        lines.forEach((line, index) => {
             const parts = line.split('.');
             if (parts.length >= 2) {
+                const existingCH = parts[0].toLowerCase();
                 const existingBS = parts[1].split(',').map(bs => bs.trim().toLowerCase());
-                // Nếu có bất kỳ BS nào trùng, xóa dòng cũ
-                return !existingBS.some(bs => bsToCheck.includes(bs));
+                
+                // Nếu CH trùng
+                if (existingCH === ch.toLowerCase()) {
+                    existingLineIndex = index;
+                }
+                
+                // Nếu có BS trùng (khác CH)
+                const hasMatchingBS = existingBS.some(bs => bsToCheck.includes(bs));
+                if (hasMatchingBS && existingCH !== ch.toLowerCase()) {
+                    linesToRemove.push(index);
+                }
             }
-            return true;
         });
         
-        // Thêm dòng mới
-        lines.push(newEntry);
+        let newEntry = '';
+        
+        // Xử lý logic gộp dữ liệu
+        if (existingLineIndex !== -1) {
+            // Có CH trùng - gộp BS và More
+            const existingLine = lines[existingLineIndex];
+            const parts = existingLine.split('.');
+            const existingBS = parts[1].split(',').map(bs => bs.trim());
+            const existingMore = parts.slice(2).join('.');
+            
+            // Gộp BS (loại bỏ trùng lặp)
+            const mergedBS = [...new Set([...existingBS, ...bsArray])];
+            
+            // Gộp More (nếu có)
+            let mergedMore = existingMore;
+            if (more && !existingMore.includes(more)) {
+                mergedMore = existingMore ? `${existingMore},${more}` : more;
+            }
+            
+            newEntry = `${ch}.${mergedBS.join(',')}.${mergedMore}`;
+            lines[existingLineIndex] = newEntry;
+            
+        } else {
+            // Không có CH trùng - tạo dòng mới
+            newEntry = more ? `${ch}.${bsArray.join(',')}.${more}` : `${ch}.${bsArray.join(',')}`;
+            lines.push(newEntry);
+        }
+        
+        // Xóa các dòng có BS trùng (khác CH)
+        if (linesToRemove.length > 0) {
+            lines = lines.filter((line, index) => !linesToRemove.includes(index));
+        }
+        
         const newContent = lines.join('\n');
         
         // Cập nhật file
         await updateFile(newContent, fileInfo.sha);
         
-        const deletedCount = currentContent.split('\n').length - lines.length;
         let message = '✅ Đã thêm thông tin thành công!';
-        if (deletedCount > 0) {
-            message += ` Đã xóa ${deletedCount} dòng cũ có BS trùng.`;
+        if (existingLineIndex !== -1) {
+            message += ' Đã gộp với dữ liệu CH trùng.';
+        }
+        if (linesToRemove.length > 0) {
+            message += ` Đã xóa ${linesToRemove.length} dòng có BS trùng.`;
         }
         
         showMessage(message, 'success');
@@ -299,6 +343,15 @@ let searchTimeout;
 document.getElementById('searchInput').addEventListener('input', function(e) {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(searchData, 300);
+});
+
+// Auto uppercase cho input
+document.getElementById('newCode').addEventListener('input', function(e) {
+    this.value = this.value.toUpperCase();
+});
+
+document.getElementById('newSubCode').addEventListener('input', function(e) {
+    this.value = this.value.toUpperCase();
 });
 
 // Load dữ liệu khi trang được tải
