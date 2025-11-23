@@ -1,10 +1,43 @@
-// Tự động detect repository
-const GITHUB_REPO = window.location.hostname.split('.')[0];
-const GITHUB_USERNAME = GITHUB_REPO;
+// Cấu hình GitHub - CẦN SỬA LẠI THEO THÔNG TIN THỰC TẾ
+const GITHUB_USERNAME = 'qiu2zhi1zhe3'; // THAY BẰNG USERNAME THẬT
+const GITHUB_REPO = 'qiu2zhi1zhe3.github.io'; // THAY BẰNG TÊN REPOSITORY THẬT
 const DATA_FILE_PATH = 'data.txt';
 
 let data = [];
 let githubToken = localStorage.getItem('githubToken');
+
+// Hàm tự động detect thông tin repository (dự phòng)
+function detectRepoInfo() {
+    // Lấy từ URL hiện tại
+    const currentUrl = window.location.href;
+    const match = currentUrl.match(/https?:\/\/([^.]+)\.github\.io\/([^/]+)/);
+    
+    if (match && match[1] && match[2]) {
+        return {
+            username: match[1],
+            repo: match[2]
+        };
+    }
+    
+    // Fallback: lấy từ hostname
+    const hostname = window.location.hostname;
+    const username = hostname.split('.')[0];
+    
+    return {
+        username: username,
+        repo: username + '.github.io' // Mặc định cho GitHub Pages
+    };
+}
+
+const repoInfo = detectRepoInfo();
+const ACTUAL_USERNAME = GITHUB_USERNAME === 'your-github-username' ? repoInfo.username : GITHUB_USERNAME;
+const ACTUAL_REPO = GITHUB_REPO === 'your-repository-name' ? repoInfo.repo : GITHUB_REPO;
+
+console.log('GitHub Config:', {
+    username: ACTUAL_USERNAME,
+    repo: ACTUAL_REPO,
+    token: githubToken ? '✓ Đã có token' : '✗ Chưa có token'
+});
 
 // Tab functions
 function openTab(tabName) {
