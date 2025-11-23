@@ -6,6 +6,50 @@ const DATA_FILE_PATH = 'data.txt';
 let data = [];
 let githubToken = localStorage.getItem('githubToken');
 
+// Tab functions
+function openTab(tabName) {
+    // Ẩn tất cả tab content
+    const tabContents = document.getElementsByClassName('tab-content');
+    for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove('active');
+    }
+    
+    // Bỏ active tất cả tab buttons
+    const tabButtons = document.getElementsByClassName('tab-button');
+    for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove('active');
+    }
+    
+    // Hiển thị tab được chọn
+    document.getElementById(tabName).classList.add('active');
+    event.currentTarget.classList.add('active');
+    
+    // Nếu là tab thêm dữ liệu, load preview
+    if (tabName === 'addTab') {
+        loadPreviewData();
+    }
+}
+
+// Load preview data
+function loadPreviewData() {
+    const previewContent = document.getElementById('dataPreview');
+    previewContent.innerHTML = 'Đang tải dữ liệu...';
+    
+    fetch(DATA_FILE_PATH + '?t=' + new Date().getTime())
+        .then(response => response.text())
+        .then(text => {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            if (lines.length === 0) {
+                previewContent.innerHTML = 'Chưa có dữ liệu';
+            } else {
+                previewContent.innerHTML = lines.join('<br>');
+            }
+        })
+        .catch(error => {
+            previewContent.innerHTML = 'Lỗi khi tải dữ liệu: ' + error.message;
+        });
+}
+
 // Load dữ liệu từ file TXT
 async function loadData() {
     try {
@@ -70,7 +114,6 @@ function searchData() {
             
             let highlightedText = highlightText(item.fullText, searchTerm);
             
-            // CHỈ HIỂN THỊ DÒNG DỮ LIỆU, KHÔNG HIỂN THỊ CHI TIẾT
             resultItem.innerHTML = `
                 <div class="result-info">${highlightedText}</div>
             `;
@@ -194,10 +237,10 @@ async function addNewData() {
         showMessage(message, 'success');
         clearForm();
         
-        // Load lại dữ liệu sau 3 giây
+        // Load lại dữ liệu và preview sau 3 giây
         setTimeout(() => {
             loadData();
-            searchData();
+            loadPreviewData();
         }, 3000);
         
     } catch (error) {
@@ -353,4 +396,8 @@ document.getElementById('newSubCode').addEventListener('input', function(e) {
 });
 
 // Load dữ liệu khi trang được tải
-window.addEventListener('DOMContentLoaded', loadData);
+window.addEventListener('DOMContentLoaded', function() {
+    loadData();
+    // Mặc định mở tab tìm kiếm
+    openTab('searchTab');
+});
