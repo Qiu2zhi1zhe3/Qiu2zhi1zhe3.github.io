@@ -12,7 +12,7 @@
         
         <!-- Tìm kiếm lên đầu -->
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Nhập BS, mã số hoặc từ khóa để tìm kiếm...">
+            <input type="text" id="searchInput" placeholder="Nhập BS, CH hoặc từ khóa để tìm kiếm...">
             <button onclick="searchData()">Tìm kiếm</button>
         </div>
 
@@ -35,14 +35,14 @@
             <div class="add-form">
                 <div class="form-group">
                     <label for="newCode">CH</label>
-                    <input type="text" id="newCode" placeholder="VD: C11708" class="form-input">
+                    <input type="text" id="newCode" placeholder="VD: C20608A" class="form-input" style="text-transform: uppercase;">
                 </div>
                 <div class="form-group">
                     <label for="newSubCode">BS (có thể nhiều, cách nhau bằng dấu phẩy)</label>
-                    <input type="text" id="newSubCode" placeholder="VD: 38A-40773, 38A-11106" class="form-input">
+                    <input type="text" id="newSubCode" placeholder="VD: 38A-40773, 38A-11106" class="form-input" style="text-transform: uppercase;">
                 </div>
                 <div class="form-group">
-                    <label for="newName">More</label>
+                    <label for="newName">More (có thể để trống)</label>
                     <input type="text" id="newName" placeholder="VD: Thông tin bổ sung" class="form-input">
                 </div>
                 <button onclick="addNewData()" class="add-btn">Thêm vào file data.txt</button>
