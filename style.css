@@ -27,6 +27,45 @@ h1 {
     font-size: 2.2em;
 }
 
+/* Tab styles */
+.tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.tab-button {
+    padding: 12px 30px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 16px;
+    font-weight: bold;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.tab-button:hover {
+    color: #495057;
+    background: #f8f9fa;
+}
+
+.tab-button.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    background: #f8f9fa;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Search tab styles */
 .search-box {
     display: flex;
     gap: 10px;
@@ -91,14 +130,10 @@ button:hover {
     transform: translateX(5px);
 }
 
-.result-code {
-    font-weight: bold;
-    color: #667eea;
-    margin-bottom: 5px;
-}
-
 .result-info {
     color: #333;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
 }
 
 .highlight {
@@ -115,13 +150,13 @@ button:hover {
     padding: 40px;
 }
 
-/* Form thêm dữ liệu */
+/* Add data tab styles */
 .add-data-section {
     background: #f8f9fa;
     border: 2px dashed #dee2e6;
     border-radius: 10px;
     padding: 20px;
-    margin-top: 30px;
+    margin-bottom: 30px;
 }
 
 .add-data-section h2 {
@@ -171,6 +206,37 @@ button:hover {
 
 .add-btn:hover {
     transform: translateY(-2px);
+}
+
+/* Data preview */
+.data-preview {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.data-preview h3 {
+    color: #495057;
+    margin-bottom: 15px;
+}
+
+.preview-content {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.preview-btn {
+    background: #6c757d;
+    padding: 10px 20px;
+    font-size: 14px;
+    margin-top: 10px;
 }
 
 .message {
@@ -255,5 +321,20 @@ button:hover {
     
     h1 {
         font-size: 1.8em;
+    }
+    
+    .tabs {
+        flex-direction: column;
+    }
+    
+    .tab-button {
+        text-align: center;
+        border-bottom: 1px solid #dee2e6;
+        border-left: 3px solid transparent;
+    }
+    
+    .tab-button.active {
+        border-left-color: #667eea;
+        border-bottom-color: #dee2e6;
     }
 }
