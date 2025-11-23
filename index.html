@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tìm kiếm thông tin</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Tìm kiếm thông tin</h1>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Nhập mã số hoặc từ khóa để tìm kiếm...">
+            <button onclick="searchData()">Tìm kiếm</button>
+        </div>
+
+        <div class="results-info">
+            <span id="resultCount">0 kết quả</span>
+        </div>
+
+        <div class="results" id="results">
+            <!-- Kết quả sẽ hiển thị ở đây -->
+        </div>
+
+        <div class="no-results" id="noResults" style="display: none;">
+            <p>Không tìm thấy kết quả nào phù hợp.</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
