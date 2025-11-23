@@ -12,7 +12,7 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
     background: white;
     border-radius: 15px;
@@ -64,9 +64,17 @@ button:hover {
 }
 
 .results-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 15px;
     color: #666;
-    font-style: italic;
+}
+
+.refresh-btn {
+    background: #6c757d;
+    padding: 8px 15px;
+    font-size: 14px;
 }
 
 .result-item {
@@ -107,29 +115,13 @@ button:hover {
     padding: 40px;
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-    .container {
-        padding: 20px;
-        margin: 10px;
-    }
-    
-    .search-box {
-        flex-direction: column;
-    }
-    
-    h1 {
-        font-size: 1.8em;
-    }
-}
-/* Thêm các style mới vào file CSS hiện có */
-
+/* Form thêm dữ liệu */
 .add-data-section {
     background: #f8f9fa;
     border: 2px dashed #dee2e6;
     border-radius: 10px;
     padding: 20px;
-    margin-bottom: 30px;
+    margin-top: 30px;
 }
 
 .add-data-section h2 {
@@ -140,9 +132,21 @@ button:hover {
 
 .add-form {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr auto;
-    gap: 10px;
+    grid-template-columns: 1fr 2fr 1fr auto;
+    gap: 15px;
     align-items: end;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #495057;
+    font-size: 14px;
 }
 
 .form-input {
@@ -150,6 +154,7 @@ button:hover {
     border: 2px solid #dee2e6;
     border-radius: 6px;
     font-size: 14px;
+    width: 100%;
 }
 
 .form-input:focus {
@@ -161,16 +166,11 @@ button:hover {
     background: linear-gradient(135deg, #28a745, #20c997);
     padding: 12px 20px;
     white-space: nowrap;
+    height: fit-content;
 }
 
 .add-btn:hover {
     transform: translateY(-2px);
-}
-
-.refresh-btn {
-    background: #6c757d;
-    padding: 8px 15px;
-    font-size: 14px;
 }
 
 .message {
@@ -240,5 +240,20 @@ button:hover {
 @media (max-width: 768px) {
     .add-form {
         grid-template-columns: 1fr;
+    }
+    
+    .results-info {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+    
+    .container {
+        padding: 20px;
+        margin: 10px;
+    }
+    
+    h1 {
+        font-size: 1.8em;
     }
 }
