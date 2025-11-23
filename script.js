@@ -20,7 +20,7 @@ async function loadData() {
                     return {
                         fullText: line.trim(),
                         ch: parts[0], // CH
-                        bs: parts[1].split(',').map(bs => bs.trim()), // BS (có thể nhiều)
+                        bs: parts[1].split(' ').map(bs => bs.trim()).filter(bs => bs !== ''), // BS (cách nhau bằng dấu cách)
                         more: parts.slice(2).join('.') // More
                     };
                 }
@@ -70,11 +70,9 @@ function searchData() {
             
             let highlightedText = highlightText(item.fullText, searchTerm);
             
+            // CHỈ HIỂN THỊ DÒNG DỮ LIỆU, KHÔNG HIỂN THỊ CHI TIẾT
             resultItem.innerHTML = `
                 <div class="result-info">${highlightedText}</div>
-                <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                    CH: ${item.ch} | BS: ${item.bs.join(', ')} | More: ${item.more}
-                </div>
             `;
             
             resultsContainer.appendChild(resultItem);
@@ -104,8 +102,8 @@ async function addNewData() {
         return;
     }
 
-    // Xử lý nhiều BS (tách bằng dấu phẩy)
-    const bsArray = bsInput.split(',')
+    // Xử lý nhiều BS (tách bằng dấu CÁCH)
+    const bsArray = bsInput.split(' ')
         .map(bs => bs.trim())
         .filter(bs => bs !== '');
 
@@ -132,7 +130,7 @@ async function addNewData() {
             const parts = line.split('.');
             if (parts.length >= 2) {
                 const existingCH = parts[0].toLowerCase();
-                const existingBS = parts[1].split(',').map(bs => bs.trim().toLowerCase());
+                const existingBS = parts[1].split(' ').map(bs => bs.trim().toLowerCase()).filter(bs => bs !== '');
                 
                 // Nếu CH trùng
                 if (existingCH === ch.toLowerCase()) {
@@ -154,7 +152,7 @@ async function addNewData() {
             // Có CH trùng - gộp BS và More
             const existingLine = lines[existingLineIndex];
             const parts = existingLine.split('.');
-            const existingBS = parts[1].split(',').map(bs => bs.trim());
+            const existingBS = parts[1].split(' ').map(bs => bs.trim()).filter(bs => bs !== '');
             const existingMore = parts.slice(2).join('.');
             
             // Gộp BS (loại bỏ trùng lặp)
@@ -163,15 +161,15 @@ async function addNewData() {
             // Gộp More (nếu có)
             let mergedMore = existingMore;
             if (more && !existingMore.includes(more)) {
-                mergedMore = existingMore ? `${existingMore},${more}` : more;
+                mergedMore = existingMore ? `${existingMore} ${more}` : more;
             }
             
-            newEntry = `${ch}.${mergedBS.join(',')}.${mergedMore}`;
+            newEntry = more ? `${ch}.${mergedBS.join(' ')}.${mergedMore}` : `${ch}.${mergedBS.join(' ')}`;
             lines[existingLineIndex] = newEntry;
             
         } else {
             // Không có CH trùng - tạo dòng mới
-            newEntry = more ? `${ch}.${bsArray.join(',')}.${more}` : `${ch}.${bsArray.join(',')}`;
+            newEntry = more ? `${ch}.${bsArray.join(' ')}.${more}` : `${ch}.${bsArray.join(' ')}`;
             lines.push(newEntry);
         }
         
