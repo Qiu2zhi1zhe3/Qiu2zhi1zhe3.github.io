@@ -284,23 +284,40 @@ async function addNewData() {
 
 // Hàm lấy thông tin file
 async function getFileInfo() {
+    if (!githubToken) {
+        throw new Error('Chưa có GitHub Token. Vui lòng cung cấp token.');
+    }
+
+    console.log('Đang lấy thông tin file từ GitHub...', {
+        username: ACTUAL_USERNAME,
+        repo: ACTUAL_REPO,
+        path: DATA_FILE_PATH
+    });
+
     const response = await fetch(
-        `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${DATA_FILE_PATH}`,
+        `https://api.github.com/repos/${ACTUAL_USERNAME}/${ACTUAL_REPO}/contents/${DATA_FILE_PATH}`,
         {
             headers: {
                 'Authorization': `token ${githubToken}`,
-                'Accept': 'application/vnd.github.v3+json'
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'GitHub-Data-Manager'
             }
         }
     );
 
+    console.log('GitHub API Response:', response.status, response.statusText);
+
     if (!response.ok) {
         if (response.status === 404) {
-            throw new Error('Không tìm thấy file data.txt trong repository');
+            // File không tồn tại, tạo file mới
+            return await createNewFile();
         } else if (response.status === 401) {
-            throw new Error('Token không hợp lệ hoặc hết hạn');
+            throw new Error('Token không hợp lệ hoặc hết hạn. Vui lòng tạo token mới.');
+        } else if (response.status === 403) {
+            throw new Error('Token không đủ quyền hoặc bị giới hạn rate limit.');
         } else {
-            throw new Error(`Lỗi GitHub API: ${response.status}`);
+            const errorData = await response.text();
+            throw new Error(`Lỗi GitHub API: ${response.status} - ${errorData}`);
         }
     }
 
@@ -308,6 +325,38 @@ async function getFileInfo() {
     return {
         content: decodeBase64(fileData.content),
         sha: fileData.sha
+    };
+}
+
+// Hàm tạo file mới nếu chưa tồn tại
+async function createNewFile() {
+    console.log('File data.txt chưa tồn tại, đang tạo file mới...');
+    
+    const response = await fetch(
+        `https://api.github.com/repos/${ACTUAL_USERNAME}/${ACTUAL_REPO}/contents/${DATA_FILE_PATH}`,
+        {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${githubToken}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: 'Tạo file data.txt mới',
+                content: encodeBase64('# Dữ liệu bắt đầu\nC11708.38A-40773 38A-11106.Nguyễn Quang Thọ')
+            })
+        }
+    );
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Không thể tạo file mới: ${errorData.message}`);
+    }
+
+    // Trả về thông tin file mới tạo
+    return {
+        content: '# Dữ liệu bắt đầu\nC11708.38A-40773 38A-11106.Nguyễn Quang Thọ',
+        sha: (await response.json()).content.sha
     };
 }
 
@@ -433,4 +482,22 @@ window.addEventListener('DOMContentLoaded', function() {
     loadData();
     // Mặc định mở tab tìm kiếm
     openTab('searchTab');
+});
+// Hàm debug để kiểm tra cấu hình
+function debugConfig() {
+    console.log('=== DEBUG CONFIG ===');
+    console.log('Username:', ACTUAL_USERNAME);
+    console.log('Repo:', ACTUAL_REPO);
+    console.log('Token exists:', !!githubToken);
+    console.log('Current URL:', window.location.href);
+    console.log('Data file URL:', `${window.location.origin}/${DATA_FILE_PATH}`);
+    console.log('GitHub API URL:', `https://api.github.com/repos/${ACTUAL_USERNAME}/${ACTUAL_REPO}/contents/${DATA_FILE_PATH}`);
+    console.log('==================');
+}
+
+// Chạy debug khi load trang
+window.addEventListener('DOMContentLoaded', function() {
+    loadData();
+    openTab('searchTab');
+    debugConfig(); // Thêm dòng này
 });
