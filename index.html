@@ -8,46 +8,64 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔍 Tìm kiếm thông tin</h1>
+        <h1>🔍 Quản lý thông tin</h1>
         
-        <!-- Tìm kiếm lên đầu -->
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Nhập BS, CH hoặc từ khóa để tìm kiếm...">
-            <button onclick="searchData()">Tìm kiếm</button>
+        <!-- Tab navigation -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab('searchTab')">Tìm kiếm</button>
+            <button class="tab-button" onclick="openTab('addTab')">Thêm dữ liệu</button>
         </div>
 
-        <div class="results-info">
-            <span id="resultCount">0 kết quả</span>
-            <button onclick="refreshData()" class="refresh-btn">🔄 Làm mới dữ liệu</button>
-        </div>
-
-        <div class="results" id="results">
-            <!-- Kết quả sẽ hiển thị ở đây -->
-        </div>
-
-        <div class="no-results" id="noResults" style="display: none;">
-            <p>Không tìm thấy kết quả nào phù hợp.</p>
-        </div>
-
-        <!-- Form thêm dữ liệu mới -->
-        <div class="add-data-section">
-            <h2>Thêm thông tin mới</h2>
-            <div class="add-form">
-                <div class="form-group">
-                    <label for="newCode">CH</label>
-                    <input type="text" id="newCode" placeholder="VD: C20608A" class="form-input" style="text-transform: uppercase;">
-                </div>
-                <div class="form-group">
-                    <label for="newSubCode">BS (có thể nhiều, cách nhau bằng dấu cách)</label>
-                    <input type="text" id="newSubCode" placeholder="VD: 38A-40773 38A-11106" class="form-input" style="text-transform: uppercase;">
-                </div>
-                <div class="form-group">
-                    <label for="newName">More (có thể để trống)</label>
-                    <input type="text" id="newName" placeholder="VD: Thông tin bổ sung" class="form-input">
-                </div>
-                <button onclick="addNewData()" class="add-btn">Thêm vào file data.txt</button>
+        <!-- Tab 1: Tìm kiếm -->
+        <div id="searchTab" class="tab-content active">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Nhập BS, CH hoặc từ khóa để tìm kiếm...">
+                <button onclick="searchData()">Tìm kiếm</button>
             </div>
-            <div id="addMessage" class="message"></div>
+
+            <div class="results-info">
+                <span id="resultCount">0 kết quả</span>
+                <button onclick="refreshData()" class="refresh-btn">🔄 Làm mới dữ liệu</button>
+            </div>
+
+            <div class="results" id="results">
+                <!-- Kết quả sẽ hiển thị ở đây -->
+            </div>
+
+            <div class="no-results" id="noResults" style="display: none;">
+                <p>Không tìm thấy kết quả nào phù hợp.</p>
+            </div>
+        </div>
+
+        <!-- Tab 2: Thêm dữ liệu -->
+        <div id="addTab" class="tab-content">
+            <div class="add-data-section">
+                <h2>Thêm thông tin mới</h2>
+                <div class="add-form">
+                    <div class="form-group">
+                        <label for="newCode">CH</label>
+                        <input type="text" id="newCode" placeholder="VD: C20608A" class="form-input" style="text-transform: uppercase;">
+                    </div>
+                    <div class="form-group">
+                        <label for="newSubCode">BS (có thể nhiều, cách nhau bằng dấu cách)</label>
+                        <input type="text" id="newSubCode" placeholder="VD: 38A-40773 38A-11106" class="form-input" style="text-transform: uppercase;">
+                    </div>
+                    <div class="form-group">
+                        <label for="newName">More (có thể để trống)</label>
+                        <input type="text" id="newName" placeholder="VD: Thông tin bổ sung" class="form-input">
+                    </div>
+                    <button onclick="addNewData()" class="add-btn">Thêm vào file data.txt</button>
+                </div>
+                <div id="addMessage" class="message"></div>
+            </div>
+
+            <div class="data-preview">
+                <h3>Xem trước dữ liệu</h3>
+                <div class="preview-content" id="dataPreview">
+                    <!-- Dữ liệu sẽ hiển thị ở đây -->
+                </div>
+                <button onclick="loadPreviewData()" class="preview-btn">🔄 Làm mới xem trước</button>
+            </div>
         </div>
     </div>
 
